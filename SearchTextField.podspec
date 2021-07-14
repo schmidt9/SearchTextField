@@ -26,11 +26,11 @@ SearchTextField supports two different modes: the classic dropdown list (by defa
 
                        DESC
 
-  s.homepage         = "https://github.com/apasccon/SearchTextField"
+  s.homepage         = "https://github.com/schmidt9/SearchTextField"
   # s.screenshots     = "www.example.com/screenshots_1", "www.example.com/screenshots_2"
   s.license          = 'MIT'
   s.author           = { "Alejandro Pasccon" => "apasccon@gmail.com" }
-  s.source           = { :git => "https://github.com/apasccon/SearchTextField.git", :tag => s.version.to_s }
+  s.source           = { :git => "https://github.com/schmidt9/SearchTextField.git", :tag => s.version.to_s }
   # s.social_media_url = 'https://twitter.com/<TWITTER_USERNAME>'
 
   s.ios.deployment_target = '9.0'
