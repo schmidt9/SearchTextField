@@ -703,6 +703,19 @@ open class SearchTextFieldItem : NSObject {
         self.originalAttributedSubtitle = (attributedSubtitle?.mutableCopy() as! NSMutableAttributedString)
     }
 
+    @objc(initWithAttributedTitle:attributedSubtitle:object:)
+    public convenience init(
+            attributedTitle: NSAttributedString,
+            attributedSubtitle: NSAttributedString?,
+            object: AnyObject?) {
+        self.init(title: attributedTitle.string, subtitle: attributedSubtitle?.string)
+        self.originalAttributedTitle = (attributedTitle.mutableCopy() as! NSMutableAttributedString)
+        self.originalAttributedSubtitle = (attributedSubtitle?.mutableCopy() as! NSMutableAttributedString)
+        self.titleSearchRange = NSMakeRange(0, attributedTitle.string.count)
+        self.subtitleSearchRange = NSMakeRange(0, attributedSubtitle?.string.count ?? 0)
+        self.object = object
+    }
+
     @objc(initWithAttributedTitle:attributedSubtitle:titleSearchRange:subtitleSearchRange:object:)
     public convenience init(
             attributedTitle: NSAttributedString,
