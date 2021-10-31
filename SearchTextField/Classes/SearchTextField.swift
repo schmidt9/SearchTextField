@@ -595,8 +595,10 @@ extension SearchTextField: UITableViewDelegate, UITableViewDataSource {
         cell.subtitleLabel.text = filteredResults[(indexPath as NSIndexPath).row].subtitle
         cell.titleLabel.attributedText = filteredResults[(indexPath as NSIndexPath).row].attributedTitle
         cell.subtitleLabel.attributedText = filteredResults[(indexPath as NSIndexPath).row].attributedSubtitle
-        cell.subtitleLabel.numberOfLines = 0;
-        
+
+        cell.titleLabel.numberOfLines = theme.titleUsesAutomaticHeight ? 0 : 1;
+        cell.subtitleLabel.numberOfLines = theme.subtitleUsesAutomaticHeight ? 0 : 1;
+
         cell.imageView?.image = filteredResults[(indexPath as NSIndexPath).row].image
         
         cell.selectionStyle = .none
@@ -605,7 +607,9 @@ extension SearchTextField: UITableViewDelegate, UITableViewDataSource {
     }
     
     public func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
-        return theme.cellHeight
+        (theme.titleUsesAutomaticHeight || theme.subtitleUsesAutomaticHeight)
+                ? UITableView.automaticDimension
+                : theme.cellHeight
     }
     
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -633,6 +637,10 @@ public class SearchTextFieldTheme : NSObject {
     @objc public var fontColor: UIColor
     @objc public var subtitleFontColor: UIColor
     @objc public var placeholderColor: UIColor?
+    /// if true `cellHeight` is ignored and multiline title is enabled
+    @objc public var titleUsesAutomaticHeight = false
+    /// if true `cellHeight` is ignored and multiline subtitle is enabled
+    @objc public var subtitleUsesAutomaticHeight = false
 
     @objc(initWithCellHeight:bgColor:borderColor:separatorColor:font:fontColor:subtitleFontColor:)
     init(cellHeight: CGFloat, bgColor:UIColor, borderColor: UIColor, separatorColor: UIColor, font: UIFont, fontColor: UIColor, subtitleFontColor: UIColor? = nil) {
