@@ -584,8 +584,7 @@ extension SearchTextField: UITableViewDelegate, UITableViewDataSource {
         let cell = tableView.dequeueReusableCell(withIdentifier: Self.cellIdentifier, for: indexPath) as! SearchTextFieldTableViewCell
         
         cell.backgroundColor = UIColor.clear
-        cell.layoutMargins = UIEdgeInsets.zero
-        cell.preservesSuperviewLayoutMargins = false
+        cell.margins = theme.cellMargins
         cell.titleLabel.font = theme.font
         cell.subtitleLabel.font = theme.font.withSize(theme.font.pointSize * fontConversionRate)
         cell.titleLabel.textColor = theme.fontColor
@@ -629,6 +628,7 @@ extension SearchTextField: UITableViewDelegate, UITableViewDataSource {
 @objc(APSearchTextFieldTheme)
 public class SearchTextFieldTheme : NSObject {
     @objc public var cellHeight: CGFloat
+    @objc public var cellMargins = UIEdgeInsets(top: 4, left: 4, bottom: 4, right: 4)
     @objc public var bgColor: UIColor
     @objc public var borderColor: UIColor
     @objc public var borderWidth : CGFloat = 0
