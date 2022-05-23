@@ -134,6 +134,8 @@ open class SearchTextField: UITextField {
     @objc open var tableCornerRadius: CGFloat = 2.0
     @objc open var tableBottomMargin: CGFloat = 10.0
     
+    @objc open var textInset = UIEdgeInsets()
+    
     ////////////////////////////////////////////////////////////////////////
     // Private implementation
     
@@ -202,6 +204,16 @@ open class SearchTextField: UITextField {
         var rightFrame = super.rightViewRect(forBounds: bounds)
         rightFrame.origin.x -= 5
         return rightFrame
+    }
+    
+    open override func textRect(forBounds bounds: CGRect) -> CGRect {
+        let rect = super.textRect(forBounds: bounds)
+        return rect.inset(by: textInset)
+    }
+    
+    open override func editingRect(forBounds bounds: CGRect) -> CGRect {
+        let rect = super.editingRect(forBounds: bounds)
+        return rect.inset(by: textInset)
     }
     
     // Create the filter table and shadow view
