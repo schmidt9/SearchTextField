@@ -286,7 +286,7 @@ open class SearchTextField: UITextField {
         }
         
         if let tableView = tableView {
-            guard let frame = self.superview?.convert(self.frame, to: nil) else { return }
+            let frame = self.convert(self.bounds, to: nil)
             
             //TableViews use estimated cell heights to calculate content size until they
             //  are on-screen. We must set this to the theme cell height to avoid getting an
@@ -294,6 +294,7 @@ open class SearchTextField: UITextField {
             //  cellHeights in the theme. We do it here to ensure updates to these settings
             //  are recognized if changed after the tableView is created
             tableView.estimatedRowHeight = theme.cellHeight
+            
             if self.direction == .down {
                 
                 var tableHeight: CGFloat = 0
@@ -327,7 +328,11 @@ open class SearchTextField: UITextField {
                 shadowFrame.origin.y = tableView.frame.origin.y
                 shadowView!.frame = shadowFrame
             } else {
-                let tableHeight = min((tableView.contentSize.height), (UIScreen.main.bounds.size.height - frame.origin.y - theme.cellHeight))
+                let tableHeight = min(
+                    tableView.contentSize.height,
+                    frame.origin.y - UIApplication.shared.statusBarFrame.height
+                )
+
                 UIView.animate(withDuration: 0.2, animations: { [weak self] in
                     self?.tableView?.frame = CGRect(
                         x: frame.origin.x + 2,
