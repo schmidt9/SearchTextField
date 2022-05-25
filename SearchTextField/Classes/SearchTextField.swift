@@ -36,14 +36,14 @@ open class SearchTextField: UITextField {
             
             if let placeholderColor = theme.placeholderColor {
                 if let placeholderString = placeholder {
-                    self.attributedPlaceholder = NSAttributedString(string: placeholderString, attributes: [NSAttributedString.Key.foregroundColor: placeholderColor])
+                    attributedPlaceholder = NSAttributedString(string: placeholderString, attributes: [NSAttributedString.Key.foregroundColor: placeholderColor])
                 }
                 
-                self.placeholderLabel?.textColor = placeholderColor
+                placeholderLabel?.textColor = placeholderColor
             }
            
-            if let hightlightedFont = self.highlightAttributes[.font] as? UIFont {
-                self.highlightAttributes[.font] = hightlightedFont.withSize(self.theme.font.pointSize)
+            if let highlightedFont = highlightAttributes[.font] as? UIFont {
+                highlightAttributes[.font] = highlightedFont.withSize(theme.font.pointSize)
             }
         }
     }
@@ -87,7 +87,7 @@ open class SearchTextField: UITextField {
     
     /// Start showing the default loading indicator, useful for searches that take some time.
     @objc open func showLoadingIndicator() {
-        self.rightViewMode = .always
+        rightViewMode = .always
         indicator.startAnimating()
     }
     
@@ -96,7 +96,7 @@ open class SearchTextField: UITextField {
     
     /// Hide the default loading indicator
     @objc open func stopLoadingIndicator() {
-        self.rightViewMode = .never
+        rightViewMode = .never
         indicator.stopAnimating()
     }
     
@@ -122,7 +122,7 @@ open class SearchTextField: UITextField {
     /// If startFilteringAfter is set, and startSuggestingImmediately is true, the list of suggestions appear immediately
     @objc open var startSuggestingImmediately = false
     
-    /// Allow to decide the comparision options
+    /// Allow to decide the comparison options
     @objc open var comparisonOptions: NSString.CompareOptions = [.caseInsensitive]
     
     /// Set the results list's header
@@ -176,10 +176,10 @@ open class SearchTextField: UITextField {
     override open func willMove(toSuperview newSuperview: UIView?) {
         super.willMove(toSuperview: newSuperview)
         
-        self.addTarget(self, action: #selector(SearchTextField.textFieldDidChange), for: .editingChanged)
-        self.addTarget(self, action: #selector(SearchTextField.textFieldDidBeginEditing), for: .editingDidBegin)
-        self.addTarget(self, action: #selector(SearchTextField.textFieldDidEndEditing), for: .editingDidEnd)
-        self.addTarget(self, action: #selector(SearchTextField.textFieldDidEndEditingOnExit), for: .editingDidEndOnExit)
+        addTarget(self, action: #selector(SearchTextField.textFieldDidChange), for: .editingChanged)
+        addTarget(self, action: #selector(SearchTextField.textFieldDidBeginEditing), for: .editingDidBegin)
+        addTarget(self, action: #selector(SearchTextField.textFieldDidEndEditing), for: .editingDidEnd)
+        addTarget(self, action: #selector(SearchTextField.textFieldDidEndEditingOnExit), for: .editingDidEndOnExit)
         
         NotificationCenter.default.addObserver(self, selector: #selector(SearchTextField.keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(SearchTextField.keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
@@ -197,7 +197,7 @@ open class SearchTextField: UITextField {
         
         // Create the loading indicator
         indicator.hidesWhenStopped = true
-        self.rightView = indicator
+        rightView = indicator
     }
     
     override open func rightViewRect(forBounds bounds: CGRect) -> CGRect {
@@ -219,8 +219,8 @@ open class SearchTextField: UITextField {
     // Create the filter table and shadow view
     fileprivate func buildSearchTableView() {
         guard let tableView = tableView, let shadowView = shadowView else {
-            self.tableView = UITableView(frame: CGRect.zero)
-            self.shadowView = UIView(frame: CGRect.zero)
+            tableView = UITableView(frame: CGRect.zero)
+            shadowView = UIView(frame: CGRect.zero)
             buildSearchTableView()
             return
         }
@@ -242,39 +242,39 @@ open class SearchTextField: UITextField {
         shadowView.layer.shadowOffset = CGSize.zero
         shadowView.layer.shadowOpacity = 1
         
-        self.window?.addSubview(tableView)
+        window?.addSubview(tableView)
         
         redrawSearchTableView()
     }
     
     fileprivate func buildPlaceholderLabel() {
-        var newRect = self.placeholderRect(forBounds: self.bounds)
-        var caretRect = self.caretRect(for: self.beginningOfDocument)
-        let textRect = self.textRect(forBounds: self.bounds)
+        var newRect = placeholderRect(forBounds: bounds)
+        var caretRect = caretRect(for: beginningOfDocument)
+        let textRect = textRect(forBounds: bounds)
         
         if let range = textRange(from: beginningOfDocument, to: endOfDocument) {
-            caretRect = self.firstRect(for: range)
+            caretRect = firstRect(for: range)
         }
         
         newRect.origin.x = caretRect.origin.x + caretRect.size.width + textRect.origin.x
         newRect.size.width = newRect.size.width - newRect.origin.x
         
         if let placeholderLabel = placeholderLabel {
-            placeholderLabel.font = self.font
+            placeholderLabel.font = font
             placeholderLabel.frame = newRect
         } else {
             placeholderLabel = UILabel(frame: newRect)
-            placeholderLabel?.font = self.font
+            placeholderLabel?.font = font
             placeholderLabel?.backgroundColor = UIColor.clear
             placeholderLabel?.lineBreakMode = .byClipping
             
-            if let placeholderColor = self.attributedPlaceholder?.attribute(NSAttributedString.Key.foregroundColor, at: 0, effectiveRange: nil) as? UIColor {
+            if let placeholderColor = attributedPlaceholder?.attribute(NSAttributedString.Key.foregroundColor, at: 0, effectiveRange: nil) as? UIColor {
                 placeholderLabel?.textColor = placeholderColor
             } else {
                 placeholderLabel?.textColor = UIColor ( red: 0.8, green: 0.8, blue: 0.8, alpha: 1.0 )
             }
             
-            self.addSubview(placeholderLabel!)
+            addSubview(placeholderLabel!)
         }
     }
     
@@ -286,7 +286,7 @@ open class SearchTextField: UITextField {
         }
         
         if let tableView = tableView {
-            let frame = self.convert(self.bounds, to: nil)
+            let frame = self.convert(bounds, to: nil)
             
             //TableViews use estimated cell heights to calculate content size until they
             //  are on-screen. We must set this to the theme cell height to avoid getting an
@@ -295,7 +295,7 @@ open class SearchTextField: UITextField {
             //  are recognized if changed after the tableView is created
             tableView.estimatedRowHeight = theme.cellHeight
             
-            if self.direction == .down {
+            if direction == .down {
                 
                 var tableHeight: CGFloat = 0
                 if keyboardIsShowing, let keyboardHeight = keyboardFrame?.size.height {
@@ -350,7 +350,7 @@ open class SearchTextField: UITextField {
             superview?.bringSubviewToFront(tableView)
             superview?.bringSubviewToFront(shadowView!)
             
-            if self.isFirstResponder {
+            if isFirstResponder {
                 superview?.bringSubviewToFront(self)
             }
             
@@ -389,7 +389,7 @@ open class SearchTextField: UITextField {
     }
     
     @objc open func typingDidStop() {
-        self.userStoppedTypingHandler?()
+        userStoppedTypingHandler?()
     }
     
     // Handle text field changes
@@ -410,7 +410,7 @@ open class SearchTextField: UITextField {
             if startVisible || startVisibleWithoutInteraction {
                 filter(forceShowAll: true)
             }
-            self.placeholderLabel?.text = ""
+            placeholderLabel?.text = ""
         } else {
             filter(forceShowAll: forceNoFiltering)
             prepareDrawTableResult()
@@ -435,16 +435,16 @@ open class SearchTextField: UITextField {
     
     @objc open func textFieldDidEndEditingOnExit() {
         if let firstElement = filteredResults.first {
-            if let itemSelectionHandler = self.itemSelectionHandler {
+            if let itemSelectionHandler = itemSelectionHandler {
                 itemSelectionHandler(filteredResults, 0)
             }
             else {
                 if inlineMode, let filterAfter = startFilteringAfter {
-                    let stringElements = self.text?.components(separatedBy: filterAfter)
+                    let stringElements = text?.components(separatedBy: filterAfter)
                     
-                    self.text = stringElements!.first! + filterAfter + firstElement.title
+                    text = stringElements!.first! + filterAfter + firstElement.title
                 } else {
-                    self.text = firstElement.title
+                    text = firstElement.title
                 }
             }
         }
@@ -555,14 +555,14 @@ open class SearchTextField: UITextField {
     
     // Handle inline behaviour
     func handleInlineFiltering() {
-        if let text = self.text {
+        if let text = text {
             if text == "" {
-                self.placeholderLabel?.attributedText = nil
+                placeholderLabel?.attributedText = nil
             } else {
                 if let firstResult = filteredResults.first {
-                    self.placeholderLabel?.attributedText = firstResult.attributedTitle
+                    placeholderLabel?.attributedText = firstResult.attributedTitle
                 } else {
-                    self.placeholderLabel?.attributedText = nil
+                    placeholderLabel?.attributedText = nil
                 }
             }
         }
@@ -571,7 +571,7 @@ open class SearchTextField: UITextField {
     // MARK: - Prepare for draw table result
     
     fileprivate func prepareDrawTableResult() {
-        guard let frame = self.superview?.convert(self.frame, to: UIApplication.shared.keyWindow) else { return }
+        guard let frame = superview?.convert(frame, to: UIApplication.shared.keyWindow) else { return }
         if let keyboardFrame = keyboardFrame {
             var newFrame = frame
             newFrame.size.height += theme.cellHeight
@@ -584,7 +584,7 @@ open class SearchTextField: UITextField {
             
             redrawSearchTableView()
         } else {
-            if self.center.y + theme.cellHeight > UIApplication.shared.keyWindow!.frame.size.height {
+            if center.y + theme.cellHeight > UIApplication.shared.keyWindow!.frame.size.height {
                 direction = .up
             } else {
                 direction = .down
@@ -638,7 +638,7 @@ extension SearchTextField: UITableViewDelegate, UITableViewDataSource {
     
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         if itemSelectionHandler == nil {
-            self.text = filteredResults[(indexPath as NSIndexPath).row].title
+            text = filteredResults[(indexPath as NSIndexPath).row].title
         } else {
             let index = indexPath.row
             itemSelectionHandler!(filteredResults, index)
@@ -679,11 +679,11 @@ public class SearchTextFieldTheme : NSObject {
     }
 
     @objc public static func lightTheme() -> SearchTextFieldTheme {
-        return SearchTextFieldTheme(cellHeight: 30, bgColor: UIColor (red: 1, green: 1, blue: 1, alpha: 0.6), borderColor: UIColor (red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0), separatorColor: UIColor.clear, font: UIFont.systemFont(ofSize: 10), fontColor: UIColor.black)
+        SearchTextFieldTheme(cellHeight: 30, bgColor: UIColor(red: 1, green: 1, blue: 1, alpha: 0.6), borderColor: UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 1.0), separatorColor: UIColor.clear, font: UIFont.systemFont(ofSize: 10), fontColor: UIColor.black)
     }
 
     @objc public static func darkTheme() -> SearchTextFieldTheme {
-        return SearchTextFieldTheme(cellHeight: 30, bgColor: UIColor (red: 0.8, green: 0.8, blue: 0.8, alpha: 0.6), borderColor: UIColor (red: 0.7, green: 0.7, blue: 0.7, alpha: 1.0), separatorColor: UIColor.clear, font: UIFont.systemFont(ofSize: 10), fontColor: UIColor.white)
+        SearchTextFieldTheme(cellHeight: 30, bgColor: UIColor(red: 0.8, green: 0.8, blue: 0.8, alpha: 0.6), borderColor: UIColor(red: 0.7, green: 0.7, blue: 0.7, alpha: 1.0), separatorColor: UIColor.clear, font: UIFont.systemFont(ofSize: 10), fontColor: UIColor.white)
     }
 }
 
@@ -731,8 +731,8 @@ open class SearchTextFieldItem : NSObject {
             attributedTitle: NSAttributedString,
             attributedSubtitle: NSAttributedString?) {
         self.init(title: attributedTitle.string, subtitle: attributedSubtitle?.string)
-        self.originalAttributedTitle = (attributedTitle.mutableCopy() as! NSMutableAttributedString)
-        self.originalAttributedSubtitle = (attributedSubtitle?.mutableCopy() as! NSMutableAttributedString)
+        originalAttributedTitle = (attributedTitle.mutableCopy() as! NSMutableAttributedString)
+        originalAttributedSubtitle = (attributedSubtitle?.mutableCopy() as! NSMutableAttributedString)
     }
 
     @objc(initWithAttributedTitle:attributedSubtitle:object:)
@@ -741,10 +741,10 @@ open class SearchTextFieldItem : NSObject {
             attributedSubtitle: NSAttributedString?,
             object: AnyObject?) {
         self.init(title: attributedTitle.string, subtitle: attributedSubtitle?.string)
-        self.originalAttributedTitle = (attributedTitle.mutableCopy() as! NSMutableAttributedString)
-        self.originalAttributedSubtitle = (attributedSubtitle?.mutableCopy() as! NSMutableAttributedString)
-        self.titleSearchRange = NSMakeRange(0, attributedTitle.string.count)
-        self.subtitleSearchRange = NSMakeRange(0, attributedSubtitle?.string.count ?? 0)
+        originalAttributedTitle = (attributedTitle.mutableCopy() as! NSMutableAttributedString)
+        originalAttributedSubtitle = (attributedSubtitle?.mutableCopy() as! NSMutableAttributedString)
+        titleSearchRange = NSMakeRange(0, attributedTitle.string.count)
+        subtitleSearchRange = NSMakeRange(0, attributedSubtitle?.string.count ?? 0)
         self.object = object
     }
 
@@ -756,8 +756,8 @@ open class SearchTextFieldItem : NSObject {
             subtitleSearchRange: NSRange,
             object: AnyObject?) {
         self.init(title: attributedTitle.string, subtitle: attributedSubtitle?.string)
-        self.originalAttributedTitle = (attributedTitle.mutableCopy() as! NSMutableAttributedString)
-        self.originalAttributedSubtitle = (attributedSubtitle?.mutableCopy() as! NSMutableAttributedString)
+        originalAttributedTitle = (attributedTitle.mutableCopy() as! NSMutableAttributedString)
+        originalAttributedSubtitle = (attributedSubtitle?.mutableCopy() as! NSMutableAttributedString)
         self.titleSearchRange = titleSearchRange
         self.subtitleSearchRange = subtitleSearchRange
         self.object = object
