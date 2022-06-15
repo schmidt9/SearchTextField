@@ -135,6 +135,8 @@ open class SearchTextField: UITextField {
     @objc open var tableBottomMargin: CGFloat = 10.0
     
     @objc open var textInset = UIEdgeInsets()
+
+    @objc open var leftViewLeadingMargin: CGFloat = 0
     
     ////////////////////////////////////////////////////////////////////////
     // Private implementation
@@ -205,7 +207,13 @@ open class SearchTextField: UITextField {
         rightFrame.origin.x -= 5
         return rightFrame
     }
-    
+
+    open override func leftViewRect(forBounds bounds: CGRect) -> CGRect {
+        var leftFrame = super.leftViewRect(forBounds: bounds)
+        leftFrame.origin.x += leftViewLeadingMargin
+        return leftFrame
+    }
+
     open override func textRect(forBounds bounds: CGRect) -> CGRect {
         let rect = super.textRect(forBounds: bounds)
         return rect.inset(by: textInset)
