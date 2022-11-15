@@ -165,7 +165,9 @@ open class SearchTextField: UITextField {
     }
     
     fileprivate var currentInlineItem = ""
-    
+
+    // MARK: --
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
@@ -371,31 +373,6 @@ open class SearchTextField: UITextField {
         }
     }
     
-    // Handle keyboard events
-    @objc open func keyboardWillShow(_ notification: Notification) {
-        if !keyboardIsShowing && isEditing {
-            keyboardIsShowing = true
-            keyboardFrame = ((notification as NSNotification).userInfo![UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
-            interactedWith = true
-            prepareDrawTableResult()
-        }
-    }
-    
-    @objc open func keyboardWillHide(_ notification: Notification) {
-        if keyboardIsShowing {
-            keyboardIsShowing = false
-            direction = .down
-            redrawSearchTableView()
-        }
-    }
-    
-    @objc open func keyboardDidChangeFrame(_ notification: Notification) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            self?.keyboardFrame = ((notification as NSNotification).userInfo![UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
-            self?.prepareDrawTableResult()
-        }
-    }
-    
     open func hideResultsList() {
         if let tableFrame:CGRect = tableView?.frame {
             let newFrame = CGRect(x: tableFrame.origin.x, y: tableFrame.origin.y, width: tableFrame.size.width, height: 0.0)
@@ -514,6 +491,54 @@ open class SearchTextField: UITextField {
         }
     }
 
+    fileprivate func prepareDrawTableResult() {
+        guard let frame = superview?.convert(frame, to: UIApplication.shared.keyWindow) else { return }
+        if let keyboardFrame = keyboardFrame {
+            var newFrame = frame
+            newFrame.size.height += theme.cellHeight
+
+            if keyboardFrame.intersects(newFrame) {
+                direction = .up
+            } else {
+                direction = .down
+            }
+
+            redrawSearchTableView()
+        } else {
+            if center.y + theme.cellHeight > UIApplication.shared.keyWindow!.frame.size.height {
+                direction = .up
+            } else {
+                direction = .down
+            }
+        }
+    }
+
+    // MARK: Keyboard Events
+
+    @objc open func keyboardWillShow(_ notification: Notification) {
+        if !keyboardIsShowing && isEditing {
+            keyboardIsShowing = true
+            keyboardFrame = ((notification as NSNotification).userInfo![UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
+            interactedWith = true
+            prepareDrawTableResult()
+        }
+    }
+
+    @objc open func keyboardWillHide(_ notification: Notification) {
+        if keyboardIsShowing {
+            keyboardIsShowing = false
+            direction = .down
+            redrawSearchTableView()
+        }
+    }
+
+    @objc open func keyboardDidChangeFrame(_ notification: Notification) {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
+            self?.keyboardFrame = ((notification as NSNotification).userInfo![UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
+            self?.prepareDrawTableResult()
+        }
+    }
+
     // MARK: TextField Events
 
     @objc open func typingDidStop() {
@@ -574,30 +599,6 @@ open class SearchTextField: UITextField {
                 } else {
                     text = firstElement.title
                 }
-            }
-        }
-    }
-    
-    // MARK: - Prepare for draw table result
-    
-    fileprivate func prepareDrawTableResult() {
-        guard let frame = superview?.convert(frame, to: UIApplication.shared.keyWindow) else { return }
-        if let keyboardFrame = keyboardFrame {
-            var newFrame = frame
-            newFrame.size.height += theme.cellHeight
-            
-            if keyboardFrame.intersects(newFrame) {
-                direction = .up
-            } else {
-                direction = .down
-            }
-            
-            redrawSearchTableView()
-        } else {
-            if center.y + theme.cellHeight > UIApplication.shared.keyWindow!.frame.size.height {
-                direction = .up
-            } else {
-                direction = .down
             }
         }
     }
