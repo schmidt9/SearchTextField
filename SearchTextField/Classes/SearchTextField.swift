@@ -396,68 +396,6 @@ open class SearchTextField: UITextField {
         }
     }
     
-    @objc open func typingDidStop() {
-        userStoppedTypingHandler?()
-    }
-    
-    // Handle text field changes
-    @objc open func textFieldDidChange() {
-        if !inlineMode && tableView == nil {
-            buildSearchTableView()
-        }
-        
-        interactedWith = true
-        
-        // Detect pauses while typing
-        timer?.invalidate()
-        timer = Timer.scheduledTimer(timeInterval: typingStoppedDelay, target: self, selector: #selector(SearchTextField.typingDidStop), userInfo: self, repeats: false)
-        
-        if text!.isEmpty {
-            clearResults()
-            tableView?.reloadData()
-            if startVisible || startVisibleWithoutInteraction {
-                filter(forceShowAll: true)
-            }
-            placeholderLabel?.text = ""
-        } else {
-            filter(forceShowAll: forceNoFiltering)
-            prepareDrawTableResult()
-        }
-        
-        buildPlaceholderLabel()
-    }
-    
-    @objc open func textFieldDidBeginEditing() {
-        if (startVisible || startVisibleWithoutInteraction) && text!.isEmpty {
-            clearResults()
-            filter(forceShowAll: true)
-        }
-        placeholderLabel?.attributedText = nil
-    }
-    
-    @objc open func textFieldDidEndEditing() {
-        clearResults()
-        tableView?.reloadData()
-        placeholderLabel?.attributedText = nil
-    }
-    
-    @objc open func textFieldDidEndEditingOnExit() {
-        if let firstElement = filteredResults.first {
-            if let itemSelectionHandler = itemSelectionHandler {
-                itemSelectionHandler(filteredResults, 0)
-            }
-            else {
-                if inlineMode, let filterAfter = startFilteringAfter {
-                    let stringElements = text?.components(separatedBy: filterAfter)
-                    
-                    text = stringElements!.first! + filterAfter + firstElement.title
-                } else {
-                    text = firstElement.title
-                }
-            }
-        }
-    }
-    
     open func hideResultsList() {
         if let tableFrame:CGRect = tableView?.frame {
             let newFrame = CGRect(x: tableFrame.origin.x, y: tableFrame.origin.y, width: tableFrame.size.width, height: 0.0)
@@ -571,6 +509,70 @@ open class SearchTextField: UITextField {
                     placeholderLabel?.attributedText = firstResult.attributedTitle
                 } else {
                     placeholderLabel?.attributedText = nil
+                }
+            }
+        }
+    }
+
+    // MARK: TextField Events
+
+    @objc open func typingDidStop() {
+        userStoppedTypingHandler?()
+    }
+
+    // Handle text field changes
+    @objc open func textFieldDidChange() {
+        if !inlineMode && tableView == nil {
+            buildSearchTableView()
+        }
+
+        interactedWith = true
+
+        // Detect pauses while typing
+        timer?.invalidate()
+        timer = Timer.scheduledTimer(timeInterval: typingStoppedDelay, target: self, selector: #selector(SearchTextField.typingDidStop), userInfo: self, repeats: false)
+
+        if text!.isEmpty {
+            clearResults()
+            tableView?.reloadData()
+            if startVisible || startVisibleWithoutInteraction {
+                filter(forceShowAll: true)
+            }
+            placeholderLabel?.text = ""
+        } else {
+            filter(forceShowAll: forceNoFiltering)
+            prepareDrawTableResult()
+        }
+
+        buildPlaceholderLabel()
+    }
+
+    @objc open func textFieldDidBeginEditing() {
+        if (startVisible || startVisibleWithoutInteraction) && text!.isEmpty {
+            clearResults()
+            filter(forceShowAll: true)
+        }
+        placeholderLabel?.attributedText = nil
+    }
+
+    @objc open func textFieldDidEndEditing() {
+        clearResults()
+        tableView?.reloadData()
+        placeholderLabel?.attributedText = nil
+    }
+
+    @objc open func textFieldDidEndEditingOnExit() {
+        if let firstElement = filteredResults.first {
+            if let itemSelectionHandler = itemSelectionHandler {
+                itemSelectionHandler(filteredResults, 0)
+            }
+            else {
+                if inlineMode, let filterAfter = startFilteringAfter {
+                    let stringElements = text?.components(separatedBy: filterAfter)
+
+                    text = stringElements!.first! + filterAfter + firstElement.title
+                } else {
+                    text = firstElement.title
                 }
             }
         }
@@ -777,7 +779,8 @@ public typealias SearchTextFieldItemHandler = (_ filteredResults: [SearchTextFie
 ////////////////////////////////////////////////////////////////////////
 // Suggestions List Direction
 
-enum Direction {
+@objc(APSearchTextFieldDirection)
+public enum Direction : Int {
     case down
     case up
 }
