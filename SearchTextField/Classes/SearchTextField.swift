@@ -184,8 +184,7 @@ open class SearchTextField: UITextField {
         addTarget(self, action: #selector(SearchTextField.textFieldDidBeginEditing), for: .editingDidBegin)
         addTarget(self, action: #selector(SearchTextField.textFieldDidEndEditing), for: .editingDidEnd)
         addTarget(self, action: #selector(SearchTextField.textFieldDidEndEditingOnExit), for: .editingDidEndOnExit)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(SearchTextField.keyboardWillShow(_:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+
         NotificationCenter.default.addObserver(self, selector: #selector(SearchTextField.keyboardWillHide(_:)), name: UIResponder.keyboardWillHideNotification, object: nil)
         NotificationCenter.default.addObserver(self, selector: #selector(SearchTextField.keyboardDidChangeFrame(_:)), name: UIResponder.keyboardDidChangeFrameNotification, object: nil)
     }
@@ -342,6 +341,8 @@ open class SearchTextField: UITextField {
                     tableView.contentSize.height,
                     frame.origin.y - UIApplication.shared.statusBarFrame.height
                 )
+
+                self.tableView?.frame.origin.y = frame.origin.y
 
                 UIView.animate(withDuration: 0.2, animations: { [weak self] in
                     self?.tableView?.frame = CGRect(
@@ -515,15 +516,6 @@ open class SearchTextField: UITextField {
 
     // MARK: Keyboard Events
 
-    @objc open func keyboardWillShow(_ notification: Notification) {
-        if !keyboardIsShowing && isEditing {
-            keyboardIsShowing = true
-            keyboardFrame = ((notification as NSNotification).userInfo![UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
-            interactedWith = true
-            prepareDrawTableResult()
-        }
-    }
-
     @objc open func keyboardWillHide(_ notification: Notification) {
         if keyboardIsShowing {
             keyboardIsShowing = false
@@ -532,10 +524,13 @@ open class SearchTextField: UITextField {
         }
     }
 
+    /// Triggered on keyboard show/hide
     @objc open func keyboardDidChangeFrame(_ notification: Notification) {
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) { [weak self] in
-            self?.keyboardFrame = ((notification as NSNotification).userInfo![UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
-            self?.prepareDrawTableResult()
+        if !keyboardIsShowing && isEditing {
+            keyboardIsShowing = true
+            keyboardFrame = ((notification as NSNotification).userInfo![UIResponder.keyboardFrameEndUserInfoKey] as! NSValue).cgRectValue
+            interactedWith = true
+            prepareDrawTableResult()
         }
     }
 
