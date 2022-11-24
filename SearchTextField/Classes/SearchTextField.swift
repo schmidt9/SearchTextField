@@ -387,7 +387,7 @@ open class SearchTextField: UITextField {
     fileprivate func filter(forceShowAll addAll: Bool) {
         clearResults()
         
-        if text!.count < minCharactersNumberToStartFiltering {
+        if text!.count < minCharactersNumberToStartFiltering && !addAll {
             return
         }
         
