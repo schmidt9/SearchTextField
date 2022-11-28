@@ -293,85 +293,84 @@ open class SearchTextField: UITextField {
             tableView?.isHidden = true
             return
         }
-        
-        if let tableView = tableView {
-            let frame = self.convert(bounds, to: nil)
-            
-            //TableViews use estimated cell heights to calculate content size until they
-            //  are on-screen. We must set this to the theme cell height to avoid getting an
-            //  incorrect contentSize when we have specified non-standard fonts and/or
-            //  cellHeights in the theme. We do it here to ensure updates to these settings
-            //  are recognized if changed after the tableView is created
-            tableView.estimatedRowHeight = theme.cellHeight
-            
-            if direction == .down {
-                
-                var tableHeight: CGFloat = 0
-                if keyboardIsShowing, let keyboardHeight = keyboardFrame?.size.height {
-                    tableHeight = min((tableView.contentSize.height), (UIScreen.main.bounds.size.height - frame.origin.y - frame.height - keyboardHeight))
-                } else {
-                    tableHeight = min((tableView.contentSize.height), (UIScreen.main.bounds.size.height - frame.origin.y - frame.height))
-                }
-                
-                if maxResultsListHeight > 0 {
-                    tableHeight = min(tableHeight, CGFloat(maxResultsListHeight))
-                }
-                
-                // Set a bottom margin of 10p
-                if tableHeight < tableView.contentSize.height {
-                    tableHeight -= tableBottomMargin
-                }
-                
-                var tableViewFrame = CGRect(x: 0, y: 0, width: frame.size.width - 4, height: tableHeight)
-                tableViewFrame.origin = self.convert(tableViewFrame.origin, to: nil)
-                tableViewFrame.origin.x += 2 + tableXOffset
-                tableViewFrame.origin.y += frame.size.height + 2 + tableYOffset
-                self.tableView?.frame.origin = tableViewFrame.origin // Avoid animating from (0, 0) when displaying at launch
-                UIView.animate(withDuration: 0.2, animations: { [weak self] in
-                    self?.tableView?.frame = tableViewFrame
-                })
-                
-                var shadowFrame = CGRect(x: 0, y: 0, width: frame.size.width - 6, height: 1)
-                shadowFrame.origin = self.convert(shadowFrame.origin, to: nil)
-                shadowFrame.origin.x += 3
-                shadowFrame.origin.y = tableView.frame.origin.y
-                shadowView!.frame = shadowFrame
+
+        guard let tableView = tableView else { return }
+        let frame = self.convert(bounds, to: nil)
+
+        //TableViews use estimated cell heights to calculate content size until they
+        //  are on-screen. We must set this to the theme cell height to avoid getting an
+        //  incorrect contentSize when we have specified non-standard fonts and/or
+        //  cellHeights in the theme. We do it here to ensure updates to these settings
+        //  are recognized if changed after the tableView is created
+        tableView.estimatedRowHeight = theme.cellHeight
+
+        if direction == .down {
+
+            var tableHeight: CGFloat = 0
+            if keyboardIsShowing, let keyboardHeight = keyboardFrame?.size.height {
+                tableHeight = min((tableView.contentSize.height), (UIScreen.main.bounds.size.height - frame.origin.y - frame.height - keyboardHeight))
             } else {
-                let tableHeight = min(
+                tableHeight = min((tableView.contentSize.height), (UIScreen.main.bounds.size.height - frame.origin.y - frame.height))
+            }
+
+            if maxResultsListHeight > 0 {
+                tableHeight = min(tableHeight, CGFloat(maxResultsListHeight))
+            }
+
+            // Set a bottom margin of 10p
+            if tableHeight < tableView.contentSize.height {
+                tableHeight -= tableBottomMargin
+            }
+
+            var tableViewFrame = CGRect(x: 0, y: 0, width: frame.size.width - 4, height: tableHeight)
+            tableViewFrame.origin = self.convert(tableViewFrame.origin, to: nil)
+            tableViewFrame.origin.x += 2 + tableXOffset
+            tableViewFrame.origin.y += frame.size.height + 2 + tableYOffset
+            self.tableView?.frame.origin = tableViewFrame.origin // Avoid animating from (0, 0) when displaying at launch
+            UIView.animate(withDuration: 0.2, animations: { [weak self] in
+                self?.tableView?.frame = tableViewFrame
+            })
+
+            var shadowFrame = CGRect(x: 0, y: 0, width: frame.size.width - 6, height: 1)
+            shadowFrame.origin = self.convert(shadowFrame.origin, to: nil)
+            shadowFrame.origin.x += 3
+            shadowFrame.origin.y = tableView.frame.origin.y
+            shadowView!.frame = shadowFrame
+        } else {
+            let tableHeight = min(
                     tableView.contentSize.height,
                     frame.origin.y - UIApplication.shared.statusBarFrame.height
-                )
+            )
 
-                self.tableView?.frame.origin.y = frame.origin.y
+            self.tableView?.frame.origin.y = frame.origin.y
 
-                UIView.animate(withDuration: 0.2, animations: { [weak self] in
-                    self?.tableView?.frame = CGRect(
+            UIView.animate(withDuration: 0.2, animations: { [weak self] in
+                self?.tableView?.frame = CGRect(
                         x: frame.origin.x + 2,
                         y: frame.origin.y - tableHeight,
                         width: frame.size.width - 4,
                         height: tableHeight)
-                    self?.shadowView?.frame = CGRect(
+                self?.shadowView?.frame = CGRect(
                         x: frame.origin.x + 3,
                         y: frame.origin.y + 3,
                         width: frame.size.width - 6,
                         height: 1)
-                })
-            }
-            
-            superview?.bringSubviewToFront(tableView)
-            superview?.bringSubviewToFront(shadowView!)
-            
-            if isFirstResponder {
-                superview?.bringSubviewToFront(self)
-            }
-            
-            tableView.layer.borderColor = theme.borderColor.cgColor
-            tableView.layer.cornerRadius = tableCornerRadius
-            tableView.separatorColor = theme.separatorColor
-            tableView.backgroundColor = theme.bgColor
-            
-            tableView.reloadData()
+            })
         }
+
+        superview?.bringSubviewToFront(tableView)
+        superview?.bringSubviewToFront(shadowView!)
+
+        if isFirstResponder {
+            superview?.bringSubviewToFront(self)
+        }
+
+        tableView.layer.borderColor = theme.borderColor.cgColor
+        tableView.layer.cornerRadius = tableCornerRadius
+        tableView.separatorColor = theme.separatorColor
+        tableView.backgroundColor = theme.bgColor
+
+        tableView.reloadData()
     }
     
     open func hideResultsList() {
