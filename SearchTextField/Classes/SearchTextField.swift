@@ -147,7 +147,6 @@ open class SearchTextField: UITextField {
     /// because tableView is being added directly to window
     /// thus always being in front of text field
     fileprivate var tableViewContainerView: UIView?
-    fileprivate var shadowView: UIView? // TODO: remove of fix (it's not added as subview anywhere)
     fileprivate var direction: Direction = .down
     fileprivate var fontConversionRate: CGFloat = 0.7
     fileprivate var keyboardFrame: CGRect?
@@ -233,11 +232,9 @@ open class SearchTextField: UITextField {
     // Create the filter table and shadow view
     fileprivate func buildSearchTableView() {
         guard let tableView = tableView,
-              let shadowView = shadowView,
               let tableViewContainerView = tableViewContainerView else {
             tableView = UITableView(frame: .zero)
             tableViewContainerView = UIView(frame: .zero)
-            shadowView = UIView(frame: .zero)
             buildSearchTableView()
             return
         }
@@ -256,11 +253,6 @@ open class SearchTextField: UITextField {
 
         tableViewContainerView.clipsToBounds = true
         tableViewContainerView.addSubview(tableView)
-
-        shadowView.backgroundColor = UIColor.lightText
-        shadowView.layer.shadowColor = UIColor.black.cgColor
-        shadowView.layer.shadowOffset = CGSize.zero
-        shadowView.layer.shadowOpacity = 1
         
         window?.addSubview(tableViewContainerView)
         
@@ -359,7 +351,6 @@ open class SearchTextField: UITextField {
             shadowFrame.origin = self.convert(shadowFrame.origin, to: nil)
             shadowFrame.origin.x += 3
             shadowFrame.origin.y = tableView.frame.origin.y
-            shadowView!.frame = shadowFrame
         } else {
             let tableHeight = min(
                     tableView.contentSize.height,
@@ -381,11 +372,6 @@ open class SearchTextField: UITextField {
 
             UIView.animate(withDuration: 0.2, animations: { [weak self] in
                 self?.tableView?.frame.origin = .zero
-                self?.shadowView?.frame = CGRect( // TODO: fix or remove
-                        x: frame.origin.x + 3,
-                        y: frame.origin.y + 3,
-                        width: frame.size.width - 6,
-                        height: 1)
             })
         }
 
@@ -624,9 +610,8 @@ open class SearchTextField: UITextField {
 
 extension SearchTextField: UITableViewDelegate, UITableViewDataSource {
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        tableView.isHidden = !interactedWith || (filteredResults.count == 0)
-        shadowView?.isHidden = !interactedWith || (filteredResults.count == 0)
-        
+        tableViewContainerView?.isHidden = !interactedWith || (filteredResults.count == 0)
+
         if maxNumberOfResults > 0 {
             return min(filteredResults.count, maxNumberOfResults)
         } else {
