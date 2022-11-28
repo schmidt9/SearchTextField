@@ -326,7 +326,8 @@ open class SearchTextField: UITextField {
             tableViewFrame.origin = self.convert(tableViewFrame.origin, to: nil)
             tableViewFrame.origin.x += 2 + tableXOffset
             tableViewFrame.origin.y += frame.size.height + 2 + tableYOffset
-            self.tableView?.frame.origin = tableViewFrame.origin // Avoid animating from (0, 0) when displaying at launch
+            tableView.frame.origin = tableViewFrame.origin // Avoid animating from (0, 0) when displaying at launch
+
             UIView.animate(withDuration: 0.2, animations: { [weak self] in
                 self?.tableView?.frame = tableViewFrame
             })
@@ -342,7 +343,7 @@ open class SearchTextField: UITextField {
                     frame.origin.y - UIApplication.shared.statusBarFrame.height
             )
 
-            self.tableView?.frame.origin.y = frame.origin.y
+            tableView.frame.origin.y = frame.origin.y
 
             UIView.animate(withDuration: 0.2, animations: { [weak self] in
                 self?.tableView?.frame = CGRect(
