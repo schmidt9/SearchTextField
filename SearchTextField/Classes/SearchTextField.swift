@@ -142,7 +142,12 @@ open class SearchTextField: UITextField {
     // Private implementation
     
     fileprivate var tableView: UITableView?
-    fileprivate var shadowView: UIView?
+    /// We use this view to fix tableView appearance animation
+    /// when using up direction to prevent tableView cover search text field
+    /// because tableView is being added directly to window
+    /// thus always being in front of text field
+    fileprivate var tableViewContainerView: UIView?
+    fileprivate var shadowView: UIView? // TODO: remove of fix (it's not added as subview anywhere)
     fileprivate var direction: Direction = .down
     fileprivate var fontConversionRate: CGFloat = 0.7
     fileprivate var keyboardFrame: CGRect?
@@ -174,7 +179,7 @@ open class SearchTextField: UITextField {
     
     open override func willMove(toWindow newWindow: UIWindow?) {
         super.willMove(toWindow: newWindow)
-        tableView?.removeFromSuperview()
+        tableViewContainerView?.removeFromSuperview()
     }
     
     override open func willMove(toSuperview newSuperview: UIView?) {
@@ -227,9 +232,12 @@ open class SearchTextField: UITextField {
     
     // Create the filter table and shadow view
     fileprivate func buildSearchTableView() {
-        guard let tableView = tableView, let shadowView = shadowView else {
-            tableView = UITableView(frame: CGRect.zero)
-            shadowView = UIView(frame: CGRect.zero)
+        guard let tableView = tableView,
+              let shadowView = shadowView,
+              let tableViewContainerView = tableViewContainerView else {
+            tableView = UITableView(frame: .zero)
+            tableViewContainerView = UIView(frame: .zero)
+            shadowView = UIView(frame: .zero)
             buildSearchTableView()
             return
         }
@@ -245,13 +253,16 @@ open class SearchTextField: UITextField {
         if forceRightToLeft {
             tableView.semanticContentAttribute = .forceRightToLeft
         }
-        
+
+        tableViewContainerView.clipsToBounds = true
+        tableViewContainerView.addSubview(tableView)
+
         shadowView.backgroundColor = UIColor.lightText
         shadowView.layer.shadowColor = UIColor.black.cgColor
         shadowView.layer.shadowOffset = CGSize.zero
         shadowView.layer.shadowOpacity = 1
         
-        window?.addSubview(tableView)
+        window?.addSubview(tableViewContainerView)
         
         redrawSearchTableView()
     }
@@ -291,13 +302,15 @@ open class SearchTextField: UITextField {
     fileprivate func redrawSearchTableView() {
         if inlineMode {
             tableView?.isHidden = true
+            tableViewContainerView?.isHidden = true
             return
         }
 
-        guard let tableView = tableView else { return }
+        guard let tableView = tableView,
+              let tableViewContainerView = tableViewContainerView else { return }
         let frame = self.convert(bounds, to: nil)
 
-        //TableViews use estimated cell heights to calculate content size until they
+        // TableViews use estimated cell heights to calculate content size until they
         //  are on-screen. We must set this to the theme cell height to avoid getting an
         //  incorrect contentSize when we have specified non-standard fonts and/or
         //  cellHeights in the theme. We do it here to ensure updates to these settings
@@ -321,18 +334,28 @@ open class SearchTextField: UITextField {
             if tableHeight < tableView.contentSize.height {
                 tableHeight -= tableBottomMargin
             }
+            // TODO: test container view with down direction
+            var tableViewContainerViewFrame = CGRect(
+                    x: 0,
+                    y: 0,
+                    width: frame.size.width - 4,
+                    height: tableHeight)
+            tableViewContainerViewFrame.origin = self.convert(CGPoint.zero, to: nil)
+            tableViewContainerViewFrame.origin.x += 2 + tableXOffset
+            tableViewContainerViewFrame.origin.y += frame.size.height + 2 + tableYOffset
 
-            var tableViewFrame = CGRect(x: 0, y: 0, width: frame.size.width - 4, height: tableHeight)
-            tableViewFrame.origin = self.convert(tableViewFrame.origin, to: nil)
-            tableViewFrame.origin.x += 2 + tableXOffset
-            tableViewFrame.origin.y += frame.size.height + 2 + tableYOffset
-            tableView.frame.origin = tableViewFrame.origin // Avoid animating from (0, 0) when displaying at launch
+            tableView.frame = CGRect(
+                    x: 0,
+                    y: -tableViewContainerViewFrame.height,
+                    width: tableViewContainerViewFrame.width,
+                    height: tableViewContainerViewFrame.height)
+            tableViewContainerView.frame = tableViewContainerViewFrame
 
             UIView.animate(withDuration: 0.2, animations: { [weak self] in
-                self?.tableView?.frame = tableViewFrame
+                self?.tableView?.frame.origin = .zero
             })
 
-            var shadowFrame = CGRect(x: 0, y: 0, width: frame.size.width - 6, height: 1)
+            var shadowFrame = CGRect(x: 0, y: 0, width: frame.size.width - 6, height: 1) // TODO: fix or remove
             shadowFrame.origin = self.convert(shadowFrame.origin, to: nil)
             shadowFrame.origin.x += 3
             shadowFrame.origin.y = tableView.frame.origin.y
@@ -343,27 +366,27 @@ open class SearchTextField: UITextField {
                     frame.origin.y - UIApplication.shared.statusBarFrame.height
             )
 
-            tableView.frame.origin.y = frame.origin.y
+            let tableViewContainerViewFrame = CGRect(
+                    x: frame.origin.x + 2 + tableXOffset,
+                    y: frame.origin.y - tableHeight - tableYOffset,
+                    width: frame.size.width - 4,
+                    height: tableHeight)
+            tableViewContainerView.frame = tableViewContainerViewFrame
+
+            tableView.frame = CGRect(
+                    x: 0,
+                    y: tableViewContainerViewFrame.height,
+                    width: tableViewContainerViewFrame.width,
+                    height: tableViewContainerViewFrame.height)
 
             UIView.animate(withDuration: 0.2, animations: { [weak self] in
-                self?.tableView?.frame = CGRect(
-                        x: frame.origin.x + 2,
-                        y: frame.origin.y - tableHeight,
-                        width: frame.size.width - 4,
-                        height: tableHeight)
-                self?.shadowView?.frame = CGRect(
+                self?.tableView?.frame.origin = .zero
+                self?.shadowView?.frame = CGRect( // TODO: fix or remove
                         x: frame.origin.x + 3,
                         y: frame.origin.y + 3,
                         width: frame.size.width - 6,
                         height: 1)
             })
-        }
-
-        superview?.bringSubviewToFront(tableView)
-        superview?.bringSubviewToFront(shadowView!)
-
-        if isFirstResponder {
-            superview?.bringSubviewToFront(self)
         }
 
         tableView.layer.borderColor = theme.borderColor.cgColor
