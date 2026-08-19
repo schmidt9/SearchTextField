@@ -77,6 +77,8 @@ open class SearchTextField: UITextField {
         filterItems(items)
     }
     
+    open var tableViewCellWillDisplayHandler: ((UITableViewCell, SearchTextFieldItem, Int) -> Void)?
+    
     /// Closure to handle when the user pick an item
     open var itemSelectionHandler: SearchTextFieldItemHandler?
     
@@ -630,15 +632,16 @@ extension SearchTextField: UITableViewDelegate, UITableViewDataSource {
         cell.titleLabel.textColor = theme.fontColor
         cell.subtitleLabel.textColor = theme.subtitleFontColor
         
-        cell.titleLabel.text = filteredResults[(indexPath as NSIndexPath).row].title
-        cell.subtitleLabel.text = filteredResults[(indexPath as NSIndexPath).row].subtitle
-        cell.titleLabel.attributedText = filteredResults[(indexPath as NSIndexPath).row].attributedTitle
-        cell.subtitleLabel.attributedText = filteredResults[(indexPath as NSIndexPath).row].attributedSubtitle
+        let index = indexPath.row
+        cell.titleLabel.text = filteredResults[index].title
+        cell.subtitleLabel.text = filteredResults[index].subtitle
+        cell.titleLabel.attributedText = filteredResults[index].attributedTitle
+        cell.subtitleLabel.attributedText = filteredResults[index].attributedSubtitle
 
         cell.titleLabel.numberOfLines = theme.titleUsesAutomaticHeight ? 0 : 1;
         cell.subtitleLabel.numberOfLines = theme.subtitleUsesAutomaticHeight ? 0 : 1;
 
-        cell.imageView?.image = filteredResults[(indexPath as NSIndexPath).row].image
+        cell.imageView?.image = filteredResults[index].image
         
         cell.selectionStyle = .none
         
@@ -660,6 +663,10 @@ extension SearchTextField: UITableViewDelegate, UITableViewDataSource {
         }
         
         clearResults()
+    }
+    
+    public func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
+        tableViewCellWillDisplayHandler?(cell, filteredResults[indexPath.row], indexPath.row)
     }
 }
 
