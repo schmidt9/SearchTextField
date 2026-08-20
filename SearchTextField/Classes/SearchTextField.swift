@@ -76,8 +76,16 @@ open class SearchTextField: UITextField {
         
         filterItems(items)
     }
+    // TODO: move tableView* callback vars to separate config
+    open var tableViewNumberOfSections: (() -> Int)?
     
-    open var tableViewCellWillDisplayHandler: ((UITableViewCell, SearchTextFieldItem, Int) -> Void)?
+    open var tableViewNumberOfRowsInSection: ((Int) -> Int)?
+    
+    open var tableViewViewForHeaderInSection: ((Int) -> UIView?)?
+    
+    open var tableViewViewHeightForHeaderInSection: ((Int) -> CGFloat)?
+    
+    open var tableViewCellWillDisplayHandler: ((UITableViewCell, SearchTextFieldItem, IndexPath) -> Void)?
     
     /// Closure to handle when the user pick an item
     open var itemSelectionHandler: SearchTextFieldItemHandler?
@@ -611,15 +619,22 @@ open class SearchTextField: UITextField {
     }
 }
 
-extension SearchTextField: UITableViewDelegate, UITableViewDataSource {
+extension SearchTextField: UITableViewDataSource {
+    
+    public func numberOfSections(in tableView: UITableView) -> Int {
+        tableViewNumberOfSections?() ?? 1
+    }
+    
     public func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         tableViewContainerView?.isHidden = !interactedWith || (filteredResults.count == 0)
-
-        if maxNumberOfResults > 0 {
-            return min(filteredResults.count, maxNumberOfResults)
-        } else {
-            return filteredResults.count
+        
+        if numberOfSections(in: tableView) == 1 {
+            return (maxNumberOfResults > 0)
+            ? min(filteredResults.count, maxNumberOfResults)
+            : filteredResults.count
         }
+        
+        return tableViewNumberOfRowsInSection?(section) ?? 0
     }
     
     public func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
@@ -648,10 +663,22 @@ extension SearchTextField: UITableViewDelegate, UITableViewDataSource {
         return cell
     }
     
+}
+
+extension SearchTextField: UITableViewDelegate {
+    
+    public func tableView(_ tableView: UITableView, viewForHeaderInSection section: Int) -> UIView? {
+        tableViewViewForHeaderInSection?(section)
+    }
+    
+    public func tableView(_ tableView: UITableView, heightForHeaderInSection section: Int) -> CGFloat {
+        tableViewViewHeightForHeaderInSection?(section) ?? 0
+    }
+    
     public func tableView(_ tableView: UITableView, heightForRowAt indexPath: IndexPath) -> CGFloat {
         (theme.titleUsesAutomaticHeight || theme.subtitleUsesAutomaticHeight)
-                ? UITableView.automaticDimension
-                : theme.cellHeight
+        ? UITableView.automaticDimension
+        : theme.cellHeight
     }
     
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
@@ -666,7 +693,7 @@ extension SearchTextField: UITableViewDelegate, UITableViewDataSource {
     }
     
     public func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        tableViewCellWillDisplayHandler?(cell, filteredResults[indexPath.row], indexPath.row)
+        tableViewCellWillDisplayHandler?(cell, filteredResults[indexPath.row], indexPath)
     }
 }
 
