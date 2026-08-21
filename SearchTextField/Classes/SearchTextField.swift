@@ -90,6 +90,8 @@ open class SearchTextField: UITextField {
     /// Closure to handle when the user pick an item
     open var itemSelectionHandler: SearchTextFieldItemHandler?
     
+    open var simpleItemSelectionHandler: SearchTextFieldSingleItemHandler?
+    
     /// Closure to handle when the user stops typing
     open var userStoppedTypingHandler: (() -> Void)?
     
@@ -534,10 +536,14 @@ open class SearchTextField: UITextField {
         }
     }
     
-    fileprivate func item(with indexPath: IndexPath) -> SearchTextFieldItem {
-        filteredResults.first {
+    fileprivate func item(with indexPath: IndexPath) -> SearchTextFieldItem? {
+        if (numberOfSections(in: tableView!) == 1) {
+            return filteredResults[indexPath.row]
+        }
+        
+        return filteredResults.first {
             $0.indexPath == indexPath
-        }!
+        }
     }
 
     // MARK: Keyboard Events
@@ -653,9 +659,9 @@ extension SearchTextField: UITableViewDataSource {
         cell.titleLabel.textColor = theme.fontColor
         cell.subtitleLabel.textColor = theme.subtitleFontColor
     
-        let item = (numberOfSections(in: tableView) == 1)
-        ? filteredResults[indexPath.row]
-        : item(with: indexPath)
+        guard let item = item(with: indexPath) else {
+            return cell
+        }
         
         cell.titleLabel.text = item.title
         cell.subtitleLabel.text = item.subtitle
@@ -691,18 +697,28 @@ extension SearchTextField: UITableViewDelegate {
     }
     
     public func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        if itemSelectionHandler == nil {
-            text = filteredResults[(indexPath as NSIndexPath).row].title
+        guard let item = item(with: indexPath) else {
+            return
+        }
+        
+        if itemSelectionHandler == nil && simpleItemSelectionHandler == nil {
+            text = item.title
         } else {
             let index = indexPath.row
-            itemSelectionHandler!(filteredResults, index)
+            itemSelectionHandler?(filteredResults, index)
+            
+            simpleItemSelectionHandler?(item)
         }
         
         clearResults()
     }
     
     public func tableView(_ tableView: UITableView, willDisplay cell: UITableViewCell, forRowAt indexPath: IndexPath) {
-        tableViewCellWillDisplayHandler?(cell, filteredResults[indexPath.row], indexPath)
+        guard let item = item(with: indexPath) else {
+            return
+        }
+        
+        tableViewCellWillDisplayHandler?(cell, item, indexPath)
     }
 }
 
@@ -829,6 +845,7 @@ open class SearchTextFieldItem : NSObject {
 }
 
 public typealias SearchTextFieldItemHandler = (_ filteredResults: [SearchTextFieldItem], _ index: Int) -> Void
+public typealias SearchTextFieldSingleItemHandler = (_ item: SearchTextFieldItem) -> Void
 
 ////////////////////////////////////////////////////////////////////////
 // Suggestions List Direction
