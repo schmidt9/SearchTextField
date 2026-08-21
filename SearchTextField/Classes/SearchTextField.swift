@@ -533,6 +533,12 @@ open class SearchTextField: UITextField {
             }
         }
     }
+    
+    fileprivate func item(with indexPath: IndexPath) -> SearchTextFieldItem {
+        filteredResults.first {
+            $0.indexPath == indexPath
+        }!
+    }
 
     // MARK: Keyboard Events
 
@@ -646,17 +652,20 @@ extension SearchTextField: UITableViewDataSource {
         cell.subtitleLabel.font = theme.font.withSize(theme.font.pointSize * fontConversionRate)
         cell.titleLabel.textColor = theme.fontColor
         cell.subtitleLabel.textColor = theme.subtitleFontColor
+    
+        let item = (numberOfSections(in: tableView) == 1)
+        ? filteredResults[indexPath.row]
+        : item(with: indexPath)
         
-        let index = indexPath.row
-        cell.titleLabel.text = filteredResults[index].title
-        cell.subtitleLabel.text = filteredResults[index].subtitle
-        cell.titleLabel.attributedText = filteredResults[index].attributedTitle
-        cell.subtitleLabel.attributedText = filteredResults[index].attributedSubtitle
+        cell.titleLabel.text = item.title
+        cell.subtitleLabel.text = item.subtitle
+        cell.titleLabel.attributedText = item.attributedTitle
+        cell.subtitleLabel.attributedText = item.attributedSubtitle
 
         cell.titleLabel.numberOfLines = theme.titleUsesAutomaticHeight ? 0 : 1;
         cell.subtitleLabel.numberOfLines = theme.subtitleUsesAutomaticHeight ? 0 : 1;
 
-        cell.imageView?.image = filteredResults[index].image
+        cell.imageView?.image = item.image
         
         cell.selectionStyle = .none
         
@@ -751,13 +760,14 @@ open class SearchTextFieldItem : NSObject {
     fileprivate var originalAttributedSubtitle: NSMutableAttributedString?
     fileprivate var titleSearchRange: NSRange?
     fileprivate var subtitleSearchRange: NSRange?
-
+    
     // Public interface
     public var title: String
     public var subtitle: String?
     public var image: UIImage?
     /// Arbitrary object associated with search item
     public var object: AnyObject?
+    public var indexPath: IndexPath?
 
     @objc(initWithTitle:subtitle:image:)
     public init(title: String, subtitle: String?, image: UIImage?) {
@@ -799,19 +809,22 @@ open class SearchTextFieldItem : NSObject {
         self.object = object
     }
 
-    @objc(initWithAttributedTitle:attributedSubtitle:titleSearchRange:subtitleSearchRange:object:)
+    @objc(initWithAttributedTitle:attributedSubtitle:titleSearchRange:subtitleSearchRange:object:indexPath:)
     public convenience init(
             attributedTitle: NSAttributedString,
             attributedSubtitle: NSAttributedString?,
             titleSearchRange: NSRange,
             subtitleSearchRange: NSRange,
-            object: AnyObject?) {
+            object: AnyObject?,
+            indexPath: IndexPath?
+    ) {
         self.init(title: attributedTitle.string, subtitle: attributedSubtitle?.string)
         originalAttributedTitle = (attributedTitle.mutableCopy() as! NSMutableAttributedString)
         originalAttributedSubtitle = (attributedSubtitle?.mutableCopy() as! NSMutableAttributedString)
         self.titleSearchRange = titleSearchRange
         self.subtitleSearchRange = subtitleSearchRange
         self.object = object
+        self.indexPath = indexPath
     }
 }
 
